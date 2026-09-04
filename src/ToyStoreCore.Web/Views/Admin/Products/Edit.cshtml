@@ -1,0 +1,93 @@
+@model Product
+@{
+    ViewData["Title"] = "Sửa sản phẩm";
+    var categories = (List<Category>)ViewBag.Categories;
+}
+
+<h1>Sửa sản phẩm</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminProducts" asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" style="max-width:500px;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="CreatedAt" />
+    <div class="field">
+        <label>Tên sản phẩm</label>
+        <input asp-for="Name" />
+    </div>
+    <div class="field">
+        <label>Mô tả</label>
+        <textarea asp-for="Description" rows="3"></textarea>
+    </div>
+    <div class="field">
+        <label>Danh mục</label>
+        <select asp-for="CategoryId">
+            @foreach (var c in categories)
+            {
+                <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label>Giá (đ)</label>
+        <input asp-for="Price" type="number" step="1000" />
+    </div>
+    <div class="field">
+        <label>Tồn kho</label>
+        <input asp-for="StockQuantity" type="number" />
+    </div>
+    <div class="field">
+        <label>Ảnh chính hiện tại</label><br />
+        <img src="@Model.ImageUrl" style="width:100px; height:100px; object-fit:cover; border-radius:6px; margin-bottom:8px;" />
+        <input asp-for="ImageUrl" />
+    </div>
+    <div class="field">
+        <label>Hoặc thay ảnh chính bằng file mới</label>
+        <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.gif,.webp" />
+    </div>
+
+    @if (Model.Images.Any())
+    {
+        <div class="field">
+            <label>Ảnh phụ hiện có (tick để xóa)</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                @foreach (var img in Model.Images)
+                {
+                    <div style="text-align:center;">
+                        <img src="@img.ImageUrl" style="width:70px; height:70px; object-fit:cover; border-radius:6px;" /><br />
+                        <label style="font-weight:400;"><input type="checkbox" name="removeImageIds" value="@img.Id" style="width:auto;" /> Xóa</label>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <div class="field">
+        <label>Thêm ảnh phụ mới - URL, mỗi dòng một ảnh</label>
+        <div id="galleryUrlRows">
+            <input type="text" name="galleryUrls" placeholder="https://..." style="margin-bottom:6px;" />
+        </div>
+        <button type="button" id="btnAddGalleryUrl" class="btn btn-secondary" style="margin-top:4px;">+ Thêm dòng URL</button>
+    </div>
+    <div class="field">
+        <label>Hoặc upload thêm ảnh phụ từ máy</label>
+        <input type="file" name="galleryFiles" accept=".jpg,.jpeg,.png,.gif,.webp" multiple />
+    </div>
+
+    <div class="field">
+        <label><input asp-for="IsActive" type="checkbox" style="width:auto;" /> Đang bán</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+</form>
+
+<script>
+    document.getElementById('btnAddGalleryUrl').addEventListener('click', () => {
+        const container = document.getElementById('galleryUrlRows');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'galleryUrls';
+        input.placeholder = 'https://...';
+        input.style.marginBottom = '6px';
+        container.appendChild(input);
+    });
+</script>

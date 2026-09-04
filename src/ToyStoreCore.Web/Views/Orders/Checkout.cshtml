@@ -1,0 +1,65 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<h1>Thông tin đặt hàng</h1>
+@if (Model.IsQuickBuy)
+{
+    <p style="color:#666;">Mua ngay - đơn này tách riêng khỏi giỏ hàng của bạn.</p>
+}
+else if (Model.SelectedProductIds.Any())
+{
+    <p style="color:#666;">Bạn đang thanh toán @Model.SelectedProductIds.Count sản phẩm đã chọn từ giỏ hàng.</p>
+}
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<div style="display:flex; gap:40px; flex-wrap:wrap;">
+    <form asp-action="Checkout" method="post" style="flex:1; min-width:280px;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="isQuickBuy" value="@Model.IsQuickBuy" />
+        @foreach (var id in Model.SelectedProductIds)
+        {
+            <input type="hidden" name="selectedProductIds" value="@id" />
+        }
+        <div class="field">
+            <label>Họ tên</label>
+            <input asp-for="CustomerName" />
+        </div>
+        <div class="field">
+            <label>Số điện thoại</label>
+            <input asp-for="PhoneNumber" />
+        </div>
+        <div class="field">
+            <label>Địa chỉ giao hàng</label>
+            <textarea asp-for="ShippingAddress" rows="3"></textarea>
+        </div>
+        <div class="field">
+            <label>Ghi chú (tùy chọn)</label>
+            <textarea asp-for="Note" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Đặt hàng</button>
+    </form>
+
+    <div style="flex:1; min-width:280px;">
+        <h3>Đơn hàng của bạn</h3>
+        @foreach (var line in Model.Cart.Lines)
+        {
+            <div class="cart-row">
+                <div style="flex:1;">@line.ProductName x @line.Quantity</div>
+                <div>@line.LineTotal.ToString("N0") đ</div>
+            </div>
+        }
+        <div class="cart-row"><div style="flex:1;">Tạm tính</div><div>@Model.Cart.Total.ToString("N0") đ</div></div>
+        @if (!string.IsNullOrEmpty(Model.Cart.AppliedPromoCode))
+        {
+            <div class="cart-row"><div style="flex:1;">Mã @Model.Cart.AppliedPromoCode</div><div>-@Model.Cart.AppliedPromoDiscount.ToString("N0") đ</div></div>
+        }
+        @if (Model.MembershipDiscountValue > 0)
+        {
+            <div class="cart-row"><div style="flex:1;">Ưu đãi hạng @Model.MembershipTierLabel</div><div>-@Model.MembershipDiscountValue.ToString("N0") đ</div></div>
+        }
+        <div class="cart-total">Tổng cộng: @Model.FinalTotal.ToString("N0") đ</div>
+    </div>
+</div>

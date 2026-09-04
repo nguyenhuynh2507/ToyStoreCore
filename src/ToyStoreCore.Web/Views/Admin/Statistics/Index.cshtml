@@ -1,0 +1,107 @@
+@{
+    ViewData["Title"] = "Thống kê";
+    int defaultYear = ViewBag.DefaultYear;
+}
+
+<h1>Thống kê doanh thu</h1>
+
+<div class="filter-bar">
+    <select id="revenueType">
+        <option value="month">Theo tháng</option>
+        <option value="quarter">Theo quý</option>
+        <option value="year">Theo năm</option>
+    </select>
+    <input type="number" id="revenueYear" value="@defaultYear" min="2000" max="2100" style="width:100px;" />
+    <button type="button" id="btnLoadRevenue" class="btn btn-secondary">Xem</button>
+</div>
+
+<div style="max-width:800px; margin-bottom:16px;">
+    <canvas id="revenueChart"></canvas>
+</div>
+<div id="revenueSummary" style="font-weight:600; margin-bottom:36px;"></div>
+
+<div style="display:flex; gap:32px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:320px; max-width:420px;">
+        <h3>Top 5 sản phẩm bán chạy</h3>
+        <canvas id="topProductsChart"></canvas>
+    </div>
+    <div style="flex:1; min-width:320px; max-width:420px;">
+        <h3>Top 5 khách hàng chi tiêu nhiều nhất</h3>
+        <canvas id="topCustomersChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+(function () {
+    let revenueChart, topProductsChart, topCustomersChart;
+
+    function formatVnd(n) {
+        return new Intl.NumberFormat('vi-VN').format(Math.round(n));
+    }
+
+    async function loadRevenue() {
+        const type = document.getElementById('revenueType').value;
+        const year = document.getElementById('revenueYear').value;
+        const res = await fetch(`/Admin/Statistics/GetRevenueData?type=${type}&year=${year}`);
+        const data = await res.json();
+        if (!data.success) {
+            document.getElementById('revenueSummary').textContent = data.message || 'Lỗi tải dữ liệu.';
+            return;
+        }
+
+        const labels = data.items.map(i => i.label);
+        const revenues = data.items.map(i => i.totalRevenue);
+
+        if (revenueChart) revenueChart.destroy();
+        revenueChart = new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{ label: 'Doanh thu (đ)', data: revenues, backgroundColor: '#1f2a44' }],
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } },
+        });
+
+        document.getElementById('revenueSummary').textContent =
+            `Tổng: ${data.summary.totalOrders} đơn - ${formatVnd(data.summary.totalRevenue)} đ`;
+    }
+
+    async function loadTopProducts() {
+        const res = await fetch('/Admin/Statistics/GetTopProductsData?topN=5');
+        const data = await res.json();
+        if (!data.success) return;
+
+        if (topProductsChart) topProductsChart.destroy();
+        topProductsChart = new Chart(document.getElementById('topProductsChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.items.map(i => i.productName),
+                datasets: [{ data: data.items.map(i => i.totalQuantity), backgroundColor: ['#1f2a44', '#d1435b', '#e8a33d', '#3ba776', '#7b6bd6'] }],
+            },
+        });
+    }
+
+    async function loadTopCustomers() {
+        const res = await fetch('/Admin/Statistics/GetTopCustomersData?topN=5');
+        const data = await res.json();
+        if (!data.success) return;
+
+        if (topCustomersChart) topCustomersChart.destroy();
+        topCustomersChart = new Chart(document.getElementById('topCustomersChart'), {
+            type: 'bar',
+            data: {
+                labels: data.items.map(i => i.customerName),
+                datasets: [{ label: 'Tổng chi tiêu (đ)', data: data.items.map(i => i.totalSpent), backgroundColor: '#d1435b' }],
+            },
+            options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } },
+        });
+    }
+
+    document.getElementById('btnLoadRevenue').addEventListener('click', loadRevenue);
+
+    loadRevenue();
+    loadTopProducts();
+    loadTopCustomers();
+})();
+</script>

@@ -1,0 +1,46 @@
+@model List<UserActivityLog>
+@{
+    ViewData["Title"] = "Nhật ký hoạt động khách hàng";
+    string? selectedType = ViewBag.SelectedActivityType;
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+}
+
+<h1>Nhật ký hoạt động khách hàng</h1>
+<p style="color:#666;">Ghi nhận hành vi xem sản phẩm / thêm giỏ hàng của khách đã đăng nhập — dùng làm dữ liệu cho gợi ý sản phẩm.</p>
+
+<form method="get" class="filter-bar">
+    <select name="activityType" onchange="this.form.submit()">
+        <option value="">Tất cả hành vi</option>
+        <option value="ViewProduct" selected="@(selectedType == "ViewProduct")">Xem sản phẩm</option>
+        <option value="AddToCart" selected="@(selectedType == "AddToCart")">Thêm giỏ hàng</option>
+    </select>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Thời gian</th><th>Khách hàng</th><th>Hành vi</th><th>Sản phẩm</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var log in Model)
+        {
+            <tr>
+                <td>@log.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td>@(log.User?.FullName ?? log.UserId)</td>
+                <td>@(log.ActivityType == "ViewProduct" ? "Xem sản phẩm" : log.ActivityType == "AddToCart" ? "Thêm giỏ hàng" : log.ActivityType)</td>
+                <td>@(log.Product?.Name ?? (log.ProductId.HasValue ? $"#{log.ProductId}" : "—"))</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (totalPages > 1)
+{
+    <div style="display:flex; gap:8px; margin-top:16px;">
+        @for (var p = 1; p <= totalPages; p++)
+        {
+            <a class="btn @(p == currentPage ? "btn-primary" : "btn-secondary")"
+               asp-action="Index" asp-route-page="@p" asp-route-activityType="@selectedType">@p</a>
+        }
+    </div>
+}

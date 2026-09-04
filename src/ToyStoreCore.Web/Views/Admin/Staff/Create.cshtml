@@ -1,0 +1,29 @@
+@model CreateStaffViewModel
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+}
+
+<h1>Thêm nhân viên mới</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminStaff" asp-action="Create" method="post" style="max-width:400px;">
+    @Html.AntiForgeryToken()
+    <div class="field">
+        <label>Họ tên</label>
+        <input asp-for="FullName" />
+    </div>
+    <div class="field">
+        <label>Email</label>
+        <input asp-for="Email" />
+    </div>
+    <div class="field">
+        <label>Số điện thoại</label>
+        <input asp-for="Phone" />
+    </div>
+    <div class="field">
+        <label>Mật khẩu</label>
+        <input asp-for="Password" type="password" />
+    </div>
+    <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
+</form>

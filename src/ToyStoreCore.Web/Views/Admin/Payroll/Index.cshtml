@@ -1,0 +1,51 @@
+@model List<Payroll>
+@{
+    ViewData["Title"] = "Bảng lương";
+    int month = ViewBag.Month;
+    int year = ViewBag.Year;
+    decimal totalNetSalary = ViewBag.TotalNetSalary;
+    int totalShifts = ViewBag.TotalShifts;
+}
+
+<h1>Bảng lương nhân viên</h1>
+
+<form method="get" class="filter-bar">
+    <input type="number" name="month" value="@month" min="1" max="12" style="width:70px;" />
+    <input type="number" name="year" value="@year" min="2000" max="2100" style="width:90px;" />
+    <button type="submit" class="btn btn-secondary">Xem</button>
+</form>
+
+<form asp-controller="AdminPayroll" asp-action="Calculate" method="post" style="margin-bottom:16px;"
+      onsubmit="return confirm('Chốt lương tháng @month/@year? Dữ liệu cũ (nếu có) sẽ được ghi đè.');">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="month" value="@month" />
+    <input type="hidden" name="year" value="@year" />
+    <button type="submit" class="btn btn-primary">Chốt lương tháng @month/@year</button>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Nhân viên</th><th>Số ca hoàn thành</th><th>Lương/ca</th><th>Thực lãnh</th><th>Trạng thái</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@(p.Staff?.FullName ?? p.StaffUserId)</td>
+                <td>@p.TotalShifts</td>
+                <td>@p.BasicSalaryPerShift.ToString("N0") đ</td>
+                <td>@p.NetSalary.ToString("N0") đ</td>
+                <td>@p.Status</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="font-weight:700;">Tổng cộng</td>
+            <td style="font-weight:700;">@totalShifts</td>
+            <td></td>
+            <td style="font-weight:700;">@totalNetSalary.ToString("N0") đ</td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>

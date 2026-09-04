@@ -1,0 +1,29 @@
+@model List<Banner>
+@{
+    ViewData["Title"] = "Quản lý banner";
+}
+
+<h1>Quản lý banner trang chủ</h1>
+
+<p><a class="btn btn-primary" asp-controller="AdminBanners" asp-action="Create">+ Thêm banner</a></p>
+
+<div class="product-grid">
+    @foreach (var b in Model)
+    {
+        <div class="product-card">
+            <img src="@b.ImageUrl" alt="@b.Title" />
+            <div class="body">
+                <div class="name">@(b.Title ?? "(Không có tiêu đề)")</div>
+                <div>@(b.IsActive ? "Đang hiển thị" : "Đã ẩn")</div>
+                <div style="display:flex; gap:8px;">
+                    <a class="btn btn-secondary" asp-controller="AdminBanners" asp-action="Edit" asp-route-id="@b.Id">Sửa</a>
+                    <form asp-controller="AdminBanners" asp-action="Delete" asp-route-id="@b.Id" method="post"
+                          onsubmit="return confirm('Xóa banner này?');" style="margin:0;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>

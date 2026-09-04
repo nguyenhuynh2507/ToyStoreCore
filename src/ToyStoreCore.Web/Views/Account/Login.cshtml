@@ -1,0 +1,110 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ToyStoreCore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/login.css?v=6" />
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center align-items-center bg-light-toy">
+                <div id="loginCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="~/images/slide1.png" class="d-block" alt="Toy Slide 1">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="~/images/slide2.webp" class="d-block" alt="Toy Slide 2">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="~/images/slide3.png" class="d-block" alt="Toy Slide 3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 d-flex justify-content-center align-items-center">
+                <div class="col-md-9 col-lg-8 col-xl-7">
+                    <div class="text-center mb-4">
+                        <a asp-controller="Home" asp-action="Index">
+                            <img src="~/images/logo.jpg" alt="ToyStoreCore Logo" style="height: 50px;" />
+                        </a>
+                        <h1 class="h3 fw-bold mt-3">Chào mừng trở lại!</h1>
+                        <p class="text-muted">Đăng nhập để khám phá thế giới mô hình</p>
+                    </div>
+
+                    @if (TempData["Message"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Message"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Login" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReturnUrl" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <div class="form-floating">
+                                <input asp-for="Email" class="form-control" id="floatingInput" placeholder="Email" required>
+                                <label asp-for="Email" for="floatingInput">Email</label>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger d-block mb-2"></span>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <div class="form-floating flex-grow-1">
+                                <input asp-for="Password" class="form-control" id="floatingPassword" placeholder="Mật khẩu" type="password" required>
+                                <label asp-for="Password" for="floatingPassword">Mật khẩu</label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary password-toggle-btn" data-target="floatingPassword">
+                                <i class="bi bi-eye password-toggle-icon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger d-block mb-2"></span>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input asp-for="RememberMe" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">Đăng nhập</button>
+                        </div>
+
+                        <p class="text-center mt-4 text-muted">
+                            Chưa có tài khoản? <a asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-decoration-none">Đăng ký ngay</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+</body>
+</html>

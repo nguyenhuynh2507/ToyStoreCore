@@ -1,0 +1,54 @@
+@model ApplicationUser
+@{
+    ViewData["Title"] = "Chi tiết khách hàng";
+    var orders = (List<Order>)ViewBag.Orders;
+}
+
+<h1>@Model.FullName</h1>
+
+<p>
+    <strong>Email:</strong> @Model.Email<br />
+    <strong>SĐT:</strong> @(Model.Phone ?? "—")<br />
+    <strong>Địa chỉ:</strong> @(Model.Address ?? "—")<br />
+    <strong>Hạng thành viên:</strong> @(Model.Tier?.TierName ?? "Chưa có hạng")
+    @if (Model.Tier is not null)
+    {
+        <span>(giảm @Model.Tier.DiscountPercent.ToString("0.##")%)</span>
+    }
+    <br />
+    <strong>Số đơn hoàn thành:</strong> @Model.TotalCompletedOrders<br />
+    <strong>Trạng thái:</strong> @(Model.IsLocked ? "Đã khóa" : "Bình thường")
+</p>
+
+<form asp-controller="AdminCustomers" asp-action="ToggleLock" asp-route-id="@Model.Id" method="post"
+      onsubmit="return confirm('@(Model.IsLocked ? "Mở khóa" : "Khóa") tài khoản này?');">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn @(Model.IsLocked ? "btn-secondary" : "btn-danger")">
+        @(Model.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")
+    </button>
+</form>
+
+<h3 style="margin-top:28px;">Lịch sử đơn hàng</h3>
+@if (!orders.Any())
+{
+    <p>Khách hàng chưa có đơn hàng nào.</p>
+}
+else
+{
+    <table class="data-table">
+        <thead>
+            <tr><th>Mã ĐH</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var o in orders)
+            {
+                <tr>
+                    <td>#@o.Id</td>
+                    <td>@o.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@o.TotalAmount.ToString("N0") đ</td>
+                    <td>@o.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,60 @@
+@model List<Promotion>
+@{
+    ViewData["Title"] = "Quản lý khuyến mãi";
+    var currentFilter = ViewData["CurrentFilter"] as string;
+}
+
+<h1>Quản lý mã khuyến mãi</h1>
+
+<div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+    <form method="get" style="display:flex; gap:8px;">
+        <input type="text" name="searchString" value="@currentFilter" placeholder="Tìm theo mã hoặc tên..." />
+        <button type="submit" class="btn btn-secondary">Tìm</button>
+    </form>
+    <a class="btn btn-primary" asp-controller="AdminPromotions" asp-action="Create">+ Thêm mã mới</a>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Mã</th><th>Tên chương trình</th><th>Giảm giá</th><th>Đơn tối thiểu</th>
+            <th>Hiệu lực</th><th>Lượt dùng</th><th>Trạng thái</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td><code>@p.PromotionCode</code></td>
+                <td>@p.PromotionName</td>
+                <td>
+                    @if (p.DiscountType == PromotionDiscountType.Percentage)
+                    {
+                        <span>@p.DiscountValue.ToString("0.##")%</span>
+                    }
+                    else
+                    {
+                        <span>@p.DiscountValue.ToString("#,##0") đ</span>
+                    }
+                </td>
+                <td>@p.MinOrderValue.ToString("#,##0") đ</td>
+                <td>
+                    <small>
+                        @p.StartDate.ToString("dd/MM/yyyy HH:mm")<br />
+                        @p.EndDate.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                </td>
+                <td>@p.UsedCount / @(p.UsageLimit == 0 ? "∞" : p.UsageLimit.ToString())</td>
+                <td>@(p.IsActive ? "Đang bật" : "Đã tắt")</td>
+                <td style="display:flex; gap:8px;">
+                    <a class="btn btn-secondary" asp-controller="AdminPromotions" asp-action="Edit" asp-route-id="@p.Id">Sửa</a>
+                    <form asp-controller="AdminPromotions" asp-action="Delete" asp-route-id="@p.Id" method="post"
+                          onsubmit="return confirm('Xóa mã khuyến mãi này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

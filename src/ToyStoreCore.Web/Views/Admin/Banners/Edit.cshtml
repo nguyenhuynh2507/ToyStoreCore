@@ -1,0 +1,29 @@
+@model Banner
+@{
+    ViewData["Title"] = "Sửa banner";
+}
+
+<h1>Sửa banner</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminBanners" asp-action="Edit" asp-route-id="@Model.Id" method="post" style="max-width:500px;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="field">
+        <label>Tiêu đề (tùy chọn)</label>
+        <input asp-for="Title" />
+    </div>
+    <div class="field">
+        <label>URL ảnh banner</label>
+        <input asp-for="ImageUrl" />
+    </div>
+    <div class="field">
+        <label>Link khi bấm vào (tùy chọn)</label>
+        <input asp-for="LinkUrl" />
+    </div>
+    <div class="field">
+        <label><input asp-for="IsActive" type="checkbox" style="width:auto;" /> Đang hiển thị</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+</form>

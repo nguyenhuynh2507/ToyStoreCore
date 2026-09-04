@@ -1,0 +1,72 @@
+@model Product
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+    var categories = (List<Category>)ViewBag.Categories;
+}
+
+<h1>Thêm sản phẩm mới</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminProducts" asp-action="Create" method="post" enctype="multipart/form-data" style="max-width:500px;">
+    @Html.AntiForgeryToken()
+    <div class="field">
+        <label>Tên sản phẩm</label>
+        <input asp-for="Name" />
+    </div>
+    <div class="field">
+        <label>Mô tả</label>
+        <textarea asp-for="Description" rows="3"></textarea>
+    </div>
+    <div class="field">
+        <label>Danh mục</label>
+        <select asp-for="CategoryId">
+            @foreach (var c in categories)
+            {
+                <option value="@c.Id">@c.Name</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label>Giá (đ)</label>
+        <input asp-for="Price" type="number" step="1000" />
+    </div>
+    <div class="field">
+        <label>Tồn kho</label>
+        <input asp-for="StockQuantity" type="number" />
+    </div>
+    <div class="field">
+        <label>Ảnh chính - URL (bỏ qua nếu upload file bên dưới)</label>
+        <input asp-for="ImageUrl" />
+    </div>
+    <div class="field">
+        <label>Hoặc upload ảnh chính từ máy</label>
+        <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.gif,.webp" />
+    </div>
+
+    <div class="field">
+        <label>Ảnh phụ (gallery) - URL, mỗi dòng một ảnh</label>
+        <div id="galleryUrlRows">
+            <input type="text" name="galleryUrls" placeholder="https://..." style="margin-bottom:6px;" />
+        </div>
+        <button type="button" id="btnAddGalleryUrl" class="btn btn-secondary" style="margin-top:4px;">+ Thêm dòng URL</button>
+    </div>
+    <div class="field">
+        <label>Hoặc upload nhiều ảnh phụ từ máy</label>
+        <input type="file" name="galleryFiles" accept=".jpg,.jpeg,.png,.gif,.webp" multiple />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+</form>
+
+<script>
+    document.getElementById('btnAddGalleryUrl').addEventListener('click', () => {
+        const container = document.getElementById('galleryUrlRows');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'galleryUrls';
+        input.placeholder = 'https://...';
+        input.style.marginBottom = '6px';
+        container.appendChild(input);
+    });
+</script>

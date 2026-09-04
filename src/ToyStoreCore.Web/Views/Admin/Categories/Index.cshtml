@@ -1,0 +1,31 @@
+@model List<Category>
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+}
+
+<h1>Quản lý danh mục</h1>
+
+<p><a class="btn btn-primary" asp-controller="AdminCategories" asp-action="Create">+ Thêm danh mục</a></p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Tên danh mục</th><th>Số sản phẩm</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Name</td>
+                <td>@c.Products.Count</td>
+                <td style="display:flex; gap:8px;">
+                    <a class="btn btn-secondary" asp-controller="AdminCategories" asp-action="Edit" asp-route-id="@c.Id">Sửa</a>
+                    <form asp-controller="AdminCategories" asp-action="Delete" asp-route-id="@c.Id" method="post"
+                          onsubmit="return confirm('Xóa danh mục này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,103 @@
+@model CartViewModel
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<h1>Giỏ hàng của bạn</h1>
+
+@if (!Model.Lines.Any())
+{
+    <p>Giỏ hàng đang trống. <a asp-controller="Products" asp-action="Index">Tiếp tục mua sắm</a></p>
+}
+else
+{
+    <div style="margin-bottom:10px;">
+        <label><input type="checkbox" id="selectAll" checked style="width:auto;" /> Chọn tất cả</label>
+    </div>
+
+    <div>
+        @foreach (var line in Model.Lines)
+        {
+            <div class="cart-row">
+                <input type="checkbox" class="select-item" value="@line.ProductId" checked style="width:auto;" />
+                <img src="@line.ImageUrl" alt="@line.ProductName" />
+                <div style="flex:1;">
+                    <div style="font-weight:600;">@line.ProductName</div>
+                    <div>@line.UnitPrice.ToString("N0") đ</div>
+                </div>
+                <form asp-action="UpdateQuantity" method="post" style="display:flex; gap:8px; align-items:center;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@line.ProductId" />
+                    <input type="number" name="quantity" value="@line.Quantity" min="1" style="width:70px;" />
+                    <button type="submit" class="btn btn-secondary">Cập nhật</button>
+                </form>
+                <div style="width:120px; text-align:right; font-weight:700;">@line.LineTotal.ToString("N0") đ</div>
+                <form asp-action="Remove" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@line.ProductId" />
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        }
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+        <form asp-action="ClearCart" method="post" onsubmit="return confirm('Xóa toàn bộ giỏ hàng?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-secondary">Xóa toàn bộ giỏ hàng</button>
+        </form>
+        <div class="cart-total" style="margin:0;">Tổng cộng: @Model.Total.ToString("N0") đ</div>
+    </div>
+
+    <div style="margin-top:24px; max-width:400px; margin-left:auto;">
+        @if (!string.IsNullOrEmpty(Model.AppliedPromoCode))
+        {
+            <div class="alert alert-success" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Mã <strong>@Model.AppliedPromoCode</strong>: -@Model.AppliedPromoDiscount.ToString("N0") đ</span>
+                <form asp-action="RemovePromotion" method="post" style="margin:0;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-secondary" style="padding:4px 10px;">Bỏ mã</button>
+                </form>
+            </div>
+            <div class="cart-total" style="font-size:1.1rem;">Sau khuyến mãi: @Model.FinalTotal.ToString("N0") đ</div>
+        }
+        else
+        {
+            <form asp-action="ApplyPromotion" method="post" style="display:flex; gap:8px;">
+                @Html.AntiForgeryToken()
+                <input type="text" name="promoCode" placeholder="Nhập mã khuyến mãi" style="flex:1;" />
+                <button type="submit" class="btn btn-secondary">Áp dụng</button>
+            </form>
+        }
+    </div>
+
+    <div style="margin-top:20px; text-align:right;">
+        <button type="button" id="btnCheckoutSelected" class="btn btn-primary">Thanh toán mục đã chọn</button>
+    </div>
+}
+
+<script>
+    (function () {
+        const selectAll = document.getElementById('selectAll');
+        const items = document.querySelectorAll('.select-item');
+        const btn = document.getElementById('btnCheckoutSelected');
+
+        if (selectAll) {
+            selectAll.addEventListener('change', () => {
+                items.forEach(cb => { cb.checked = selectAll.checked; });
+            });
+        }
+
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const selected = Array.from(items).filter(cb => cb.checked).map(cb => cb.value);
+                if (selected.length === 0) {
+                    alert('Vui lòng chọn ít nhất một sản phẩm.');
+                    return;
+                }
+                const params = selected.map(id => 'ids=' + encodeURIComponent(id)).join('&');
+                window.location.href = '/Orders/Checkout?' + params;
+            });
+        }
+    })();
+</script>

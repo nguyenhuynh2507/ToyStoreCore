@@ -1,0 +1,17 @@
+@model Category
+@{
+    ViewData["Title"] = "Thêm danh mục";
+}
+
+<h1>Thêm danh mục mới</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminCategories" asp-action="Create" method="post" style="max-width:400px;">
+    @Html.AntiForgeryToken()
+    <div class="field">
+        <label>Tên danh mục</label>
+        <input asp-for="Name" />
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+</form>

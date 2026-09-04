@@ -1,0 +1,37 @@
+@model List<Order>
+@{
+    ViewData["Title"] = "Quản trị đơn hàng";
+    OrderStatus? selected = ViewBag.SelectedStatus;
+}
+
+<h1>Quản lý đơn hàng</h1>
+
+<form method="get" class="filter-bar">
+    <select name="status" onchange="this.form.submit()">
+        <option value="">Tất cả trạng thái</option>
+        @foreach (var s in Enum.GetValues<OrderStatus>())
+        {
+            <option value="@s" selected="@(s == selected)">@s</option>
+        }
+    </select>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Mã ĐH</th><th>Khách hàng</th><th>SĐT</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>#@o.Id</td>
+                <td>@o.CustomerName</td>
+                <td>@o.PhoneNumber</td>
+                <td>@o.TotalAmount.ToString("N0") đ</td>
+                <td>@o.Status</td>
+                <td>@o.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td><a class="btn btn-secondary" asp-controller="AdminOrders" asp-action="Details" asp-route-id="@o.Id">Chi tiết</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

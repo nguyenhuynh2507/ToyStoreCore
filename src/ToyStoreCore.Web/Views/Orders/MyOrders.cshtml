@@ -1,0 +1,41 @@
+@model List<Order>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<h1>Đơn hàng của tôi</h1>
+
+@if (!Model.Any())
+{
+    <p>Bạn chưa có đơn hàng nào. <a asp-controller="Products" asp-action="Index">Mua sắm ngay</a></p>
+}
+else
+{
+    <table class="data-table">
+        <thead>
+            <tr><th>Mã ĐH</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td>#@o.Id</td>
+                    <td>@o.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@o.TotalAmount.ToString("N0") đ</td>
+                    <td>@o.Status</td>
+                    <td style="display:flex; gap:8px;">
+                        <a class="btn btn-secondary" asp-controller="Orders" asp-action="Confirmation" asp-route-id="@o.Id">Chi tiết</a>
+                        @if (o.Status == OrderStatus.Pending)
+                        {
+                            <form asp-controller="Orders" asp-action="Cancel" asp-route-id="@o.Id" method="post"
+                                  onsubmit="return confirm('Hủy đơn hàng này?');" style="margin:0;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger">Hủy đơn</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

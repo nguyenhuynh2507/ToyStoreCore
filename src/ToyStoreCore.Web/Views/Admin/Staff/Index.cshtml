@@ -1,0 +1,32 @@
+@model List<ApplicationUser>
+@{
+    ViewData["Title"] = "Quản lý nhân viên";
+}
+
+<h1>Quản lý nhân viên</h1>
+
+<p><a class="btn btn-primary" asp-controller="AdminStaff" asp-action="Create">+ Thêm nhân viên</a></p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Họ tên</th><th>Email</th><th>SĐT</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.FullName</td>
+                <td>@s.Email</td>
+                <td>@(s.Phone ?? "—")</td>
+                <td style="display:flex; gap:8px;">
+                    <a class="btn btn-secondary" asp-controller="AdminStaff" asp-action="Edit" asp-route-id="@s.Id">Sửa</a>
+                    <form asp-controller="AdminStaff" asp-action="Delete" asp-route-id="@s.Id" method="post"
+                          onsubmit="return confirm('Xóa tài khoản nhân viên này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

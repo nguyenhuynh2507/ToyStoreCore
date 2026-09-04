@@ -1,0 +1,8 @@
+@model MembershipTier?
+
+@if (Model is not null)
+{
+    <span style="background:#2c3a63; color:#fff; padding:2px 8px; border-radius:10px; font-size:0.8rem; margin-left:8px;">
+        @Model.TierName (@Model.DiscountPercent.ToString("0.##")%)
+    </span>
+}

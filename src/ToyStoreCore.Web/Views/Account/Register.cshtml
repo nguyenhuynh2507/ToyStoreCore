@@ -1,0 +1,164 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ToyStoreCore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/register.css?v=3" />
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center align-items-center bg-light-toy">
+                <div id="registerCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="~/images/slide1.png" class="d-block" alt="Toy Slide 1">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="~/images/slide2.webp" class="d-block" alt="Toy Slide 2">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="~/images/slide3.png" class="d-block" alt="Toy Slide 3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 d-flex justify-content-center align-items-center">
+                <div class="col-md-9 col-lg-8 col-xl-7">
+                    <div class="text-center mb-4">
+                        <a asp-controller="Home" asp-action="Index">
+                            <img src="~/images/logo.jpg" alt="ToyStoreCore Logo" style="height: 50px;" />
+                        </a>
+                        <h1 class="h3 fw-bold mt-3">Tạo tài khoản mới</h1>
+                        <p class="text-muted">Tham gia cộng đồng ToyStoreCore ngay hôm nay</p>
+                    </div>
+
+                    @if (TempData["Message"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Message"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Register" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReturnUrl" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-person-badge me-2"></i>Loại tài khoản
+                            </label>
+                            <input type="text" class="form-control" value="Khách hàng" readonly />
+                            <small class="form-text text-muted">Chỉ có thể đăng ký tài khoản khách hàng. Tài khoản nhân viên/quản trị do Admin tạo.</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="FullName" class="form-label">
+                                        <i class="bi bi-person me-2"></i>Họ và tên
+                                    </label>
+                                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ tên" required />
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="bi bi-envelope me-2"></i>Email
+                                    </label>
+                                    <input asp-for="Email" class="form-control" placeholder="Nhập email" required />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Password" class="form-label">
+                                        <i class="bi bi-lock me-2"></i>Mật khẩu
+                                    </label>
+                                    <div class="input-group">
+                                        <input asp-for="Password" class="form-control" id="Password" placeholder="Nhập mật khẩu" type="password" required />
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" data-target="Password">
+                                            <i class="bi bi-eye password-toggle-icon"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ConfirmPassword" class="form-label">
+                                        <i class="bi bi-lock-fill me-2"></i>Xác nhận mật khẩu
+                                    </label>
+                                    <div class="input-group">
+                                        <input asp-for="ConfirmPassword" class="form-control" id="ConfirmPassword" placeholder="Xác nhận mật khẩu" type="password" required />
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" data-target="ConfirmPassword">
+                                            <i class="bi bi-eye password-toggle-icon"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">
+                                        <i class="bi bi-telephone me-2"></i>Số điện thoại
+                                    </label>
+                                    <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="bi bi-geo-alt me-2"></i>Địa chỉ
+                                    </label>
+                                    <input asp-for="Address" class="form-control" placeholder="Nhập địa chỉ" />
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold">
+                                <i class="bi bi-person-plus me-2"></i>Đăng ký tài khoản
+                            </button>
+                        </div>
+
+                        <p class="text-center mt-4 text-muted">
+                            Đã có tài khoản? <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-decoration-none">Đăng nhập ngay</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+</body>
+</html>

@@ -1,0 +1,878 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ";
+    const string defaultHeroImage = "https://images.unsplash.com/photo-1608889825103-eb5ed706fc64?q=80&w=1920&auto=format&fit=crop";
+}
+
+<div class="home-page">
+    <!-- ===== Cinematic Hero Carousel ===== -->
+    <section class="cinematic-hero">
+        <div id="heroCarousel" class="carousel slide carousel-fade cinematic-hero__bg"
+             data-bs-ride="carousel" data-bs-interval="4000" data-bs-pause="false">
+            <div class="carousel-inner">
+                @if (Model.Banners.Any())
+                {
+                    @for (int i = 0; i < Model.Banners.Count; i++)
+                    {
+                        var banner = Model.Banners[i];
+                        var img = !string.IsNullOrWhiteSpace(banner.ImageUrl) ? banner.ImageUrl : defaultHeroImage;
+                        <div class="carousel-item @(i == 0 ? "active" : "")" data-bs-interval="4000">
+                            <div class="cinematic-hero__slide" style="background-image: url('@img');"></div>
+                            <div class="cinematic-hero__overlay"></div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="carousel-item active">
+                        <div class="cinematic-hero__slide" style="background-image: url('@defaultHeroImage');"></div>
+                        <div class="cinematic-hero__overlay"></div>
+                    </div>
+                }
+            </div>
+
+            @if (Model.Banners.Count > 1)
+            {
+                <div class="carousel-indicators cinematic-hero__indicators">
+                    @for (int i = 0; i < Model.Banners.Count; i++)
+                    {
+                        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="@i"
+                                class="@(i == 0 ? "active" : "")" aria-label="Banner @(i + 1)"></button>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="cinematic-hero__content d-flex align-items-center justify-content-center">
+            <div class="cinematic-hero__inner">
+                <p class="cinematic-hero__eyebrow">Premium Figure Collection</p>
+                <h1 class="cinematic-hero__title">Chào mừng đến với <span>ToyStoreCore</span></h1>
+                <p class="cinematic-hero__subtitle">
+                    Khám phá bộ sưu tập mô hình và đồ chơi độc đáo, cập nhật mỗi ngày.
+                </p>
+
+                <form method="get" asp-controller="Products" asp-action="Index" class="cinematic-hero__search">
+                    <div class="cinematic-hero__search-field">
+                        <input type="text" id="homeSearchInput" name="q" value="@Context.Request.Query["q"]"
+                               class="cinematic-hero__input" placeholder="Tìm kiếm sản phẩm..." autocomplete="off" />
+                        <div id="searchSuggestions" class="search-suggestions-dropdown d-none"></div>
+                    </div>
+                    <button type="submit" class="cinematic-hero__btn">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                </form>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <p class="cinematic-hero__welcome">
+                        <i class="fas fa-user-circle me-2"></i>Xin chào, <strong>@User.Identity!.Name</strong>
+                    </p>
+                }
+                else
+                {
+                    <p class="cinematic-hero__welcome">
+                        Hãy <a asp-controller="Account" asp-action="Login">đăng nhập</a>
+                        hoặc <a asp-controller="Account" asp-action="Register">đăng ký</a> để trải nghiệm đầy đủ.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <a href="#featured" class="cinematic-hero__scroll" aria-label="Cuộn xuống">
+            <i class="fas fa-chevron-down"></i>
+        </a>
+    </section>
+
+    <!-- ===== Sản phẩm nổi bật ===== -->
+    <section id="featured" class="featured-section container">
+        <div class="text-center featured-section__head">
+            <p class="featured-section__eyebrow">New Arrivals</p>
+            <h2 class="featured-section__title">Sản phẩm nổi bật</h2>
+            <span class="lux-divider"></span>
+        </div>
+
+        @if (Model.FeaturedProducts.Any())
+        {
+            <div class="row g-4">
+                @foreach (var product in Model.FeaturedProducts)
+                {
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="card h-100 product-card" style="cursor: pointer;" onclick="location.href='@Url.Action("Details", "Products", new { id = product.Id })'">
+                            <div class="product-card__image-wrap position-relative">
+                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                {
+                                    <img src="@product.ImageUrl" class="card-img-top product-card__img" alt="@product.Name">
+                                }
+                                else
+                                {
+                                    <div class="card-img-top product-card__img product-card__img--placeholder d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                }
+                                @if (product.StockQuantity == 0)
+                                {
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <span class="badge product-card__badge product-card__badge--danger">Hết hàng</span>
+                                    </div>
+                                }
+                                else if (product.StockQuantity <= 5)
+                                {
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <span class="badge product-card__badge product-card__badge--warning">Sắp hết hàng</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-body product-card__body d-flex flex-column">
+                                <span class="product-card__category">@product.Category?.Name</span>
+                                <h6 class="card-title product-card__title">@product.Name</h6>
+                                <p class="product-card__price">@product.Price.ToString("N0") <span class="product-card__currency">VNĐ</span></p>
+                                <div class="product-card__actions mt-auto">
+                                    <div class="d-grid gap-2">
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline" onclick="event.stopPropagation();">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                <input type="hidden" name="quantity" value="1" />
+                                                <button type="submit" class="btn btn-primary btn-sm w-100">Thêm vào giỏ</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary btn-sm w-100" disabled>
+                                                <i class="fas fa-times me-1"></i>Hết hàng
+                                            </button>
+                                        }
+                                        <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation();">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-4">
+                <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">
+                    Xem tất cả sản phẩm <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                Chưa có sản phẩm nổi bật nào.
+            </div>
+        }
+    </section>
+</div>
+<style>
+    /* ===== Home - Luxury Cinematic Gallery ===== */
+
+    /* ===== Cinematic Hero Carousel ===== */
+    .cinematic-hero {
+        position: relative;
+        /* Full-bleed: tràn hết chiều ngang màn hình dù nằm trong .container */
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        min-height: 80vh;
+        text-align: center;
+        background-color: var(--lux-black, #000);
+        margin-bottom: 5rem;
+        overflow: hidden;
+    }
+
+    /* Lớp ảnh nền (carousel) chạy phía sau */
+    .cinematic-hero__bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .cinematic-hero__bg .carousel-inner,
+    .cinematic-hero__bg .carousel-item {
+        height: 100%;
+    }
+
+    /* Mỗi ảnh nền của 1 slide */
+    .cinematic-hero__slide {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* Lớp phủ tối dần từ trên xuống để nổi bật chữ + form (trên mỗi slide) */
+    .cinematic-hero__overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.92) 100%);
+        z-index: 2;
+    }
+
+    /* Lớp nội dung đứng im tuyệt đối ở giữa, KHÔNG trượt theo ảnh */
+    .cinematic-hero__content {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        padding: 2rem 1.5rem;
+        /* Cho phép click xuyên qua vùng trống để bấm được indicators phía dưới */
+        pointer-events: none;
+    }
+
+    .cinematic-hero__inner {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        pointer-events: auto;
+    }
+
+    /* Indicators (dấu chấm điều hướng) - dạng gạch ngang mỏng, sang trọng */
+    .cinematic-hero__indicators {
+        z-index: 11;
+        bottom: 1.5rem;
+        margin-bottom: 0;
+    }
+
+    .cinematic-hero__indicators [data-bs-target] {
+        width: 36px;
+        height: 3px;
+        border: none;
+        border-radius: 0;
+        background-color: rgba(255,255,255,0.45);
+        opacity: 1;
+        transition: background-color 0.3s ease;
+    }
+
+    .cinematic-hero__indicators .active {
+        background-color: var(--lux-white, #fff);
+    }
+
+    .cinematic-hero__eyebrow {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        font-size: 0.78rem;
+        color: var(--lux-muted, #b3b3b3);
+        margin-bottom: 1.25rem;
+    }
+
+    .cinematic-hero__title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 300;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--lux-white, #fff);
+        font-size: clamp(2rem, 5.5vw, 3.6rem);
+        line-height: 1.2;
+        margin-bottom: 1.25rem;
+    }
+
+    .cinematic-hero__title span {
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .cinematic-hero__subtitle {
+        color: var(--lux-muted, #b3b3b3);
+        font-weight: 300;
+        letter-spacing: 0.04em;
+        font-size: 1.05rem;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Search bar tối giản trong hero */
+    .cinematic-hero__search {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        max-width: 560px;
+        margin: 0 auto;
+        border: 1px solid rgba(255,255,255,0.5);
+        background: rgba(0,0,0,0.25);
+        backdrop-filter: blur(4px);
+        position: relative;
+    }
+
+    .cinematic-hero__search-field {
+        position: relative;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .cinematic-hero__input {
+        width: 100%;
+        flex: 1 1 auto;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--lux-white, #fff);
+        font-family: 'Inter', sans-serif;
+        font-weight: 300;
+        letter-spacing: 0.02em;
+        padding: 0.95rem 1.25rem;
+    }
+
+    .search-suggestions-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        background-color: #111;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: none;
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        text-align: left;
+    }
+
+    .search-suggestion-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.85rem;
+        text-decoration: none;
+        color: var(--lux-white, #fff);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        transition: background-color 0.25s ease;
+    }
+
+    .search-suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-suggestion-item:hover,
+    .search-suggestion-item:focus {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--lux-white, #fff);
+    }
+
+    .search-suggestion-item__thumb {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #1a1a1a;
+    }
+
+    .search-suggestion-item__info {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .search-suggestion-item__name {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 400;
+        color: var(--lux-white, #fff);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0.15rem;
+    }
+
+    .search-suggestion-item__price {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        color: var(--lux-muted, #b3b3b3);
+    }
+
+    .search-suggestions-empty {
+        padding: 1rem;
+        color: var(--lux-muted, #b3b3b3);
+        font-size: 0.88rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .cinematic-hero__input::placeholder { color: var(--lux-faint, #808080); }
+    .cinematic-hero__input:focus { background: transparent; box-shadow: none; }
+
+    /* Ghost Button */
+    .cinematic-hero__btn {
+        flex: 0 0 auto;
+        background: transparent;
+        border: none;
+        border-left: 1px solid rgba(255,255,255,0.5);
+        color: var(--lux-white, #fff);
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.82rem;
+        padding: 0.95rem 1.75rem;
+        cursor: pointer;
+        transition: all 0.4s ease;
+    }
+
+    .cinematic-hero__btn:hover {
+        background: var(--lux-white, #fff);
+        color: #000;
+    }
+
+    .cinematic-hero__clear {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-left: 1px solid rgba(255,255,255,0.5);
+        color: var(--lux-muted, #b3b3b3);
+        padding: 0 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .cinematic-hero__clear:hover { color: var(--lux-white, #fff); }
+
+    .cinematic-hero__welcome {
+        margin-top: 2rem;
+        color: var(--lux-muted, #b3b3b3);
+        font-weight: 300;
+        font-size: 0.95rem;
+    }
+
+    .cinematic-hero__welcome strong { color: var(--lux-white, #fff); font-weight: 500; }
+    .cinematic-hero__welcome a { color: var(--lux-white, #fff); text-decoration: underline; }
+    .cinematic-hero__welcome a:hover { color: var(--lux-muted, #b3b3b3); }
+
+    /* Mũi tên cuộn xuống */
+    .cinematic-hero__scroll {
+        position: absolute;
+        bottom: 3.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 11;
+        color: rgba(255,255,255,0.65);
+        font-size: 1.3rem;
+        animation: heroBounce 2s ease-in-out infinite;
+    }
+
+    .cinematic-hero__scroll:hover { color: var(--lux-white, #fff); }
+
+    @@keyframes heroBounce {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50% { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ===== Featured Collections ===== */
+    .featured-section { margin-bottom: 5rem; }
+
+    .featured-section__head { margin-bottom: 3rem; }
+
+    .featured-section__eyebrow {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        font-size: 0.72rem;
+        color: var(--lux-faint, #808080);
+        margin-bottom: 0.75rem;
+    }
+
+    .featured-section__title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 300;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: var(--lux-white, #fff) !important;
+        font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+        margin-bottom: 1rem;
+    }
+
+    .lux-divider {
+        display: inline-block;
+        width: 60px;
+        height: 1px;
+        background: rgba(255,255,255,0.4);
+    }
+
+    /* Card dọc (portrait), tiêu đề đè lên đáy ảnh */
+    .collection-card {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        border-radius: 4px;
+        background: var(--lux-surface, #111);
+        aspect-ratio: 3 / 4;
+        text-decoration: none;
+    }
+
+    .collection-card__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.7s ease;
+    }
+
+    .collection-card:hover .collection-card__img { transform: scale(1.05); }
+
+    .collection-card__overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 1.75rem;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%);
+    }
+
+    .collection-card__label {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        font-size: 0.62rem;
+        color: var(--lux-faint, #b3b3b3);
+        margin-bottom: 0.4rem;
+    }
+
+    .collection-card__title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 1.25rem;
+        color: var(--lux-white, #fff);
+        margin: 0;
+    }
+
+    .collection-card__count {
+        margin-top: 0.4rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 300;
+        font-size: 0.82rem;
+        color: var(--lux-muted, #b3b3b3);
+    }
+
+    @@media (max-width: 767.98px) {
+        .cinematic-hero { background-attachment: scroll; min-height: 80vh; }
+        .collection-card { aspect-ratio: 4 / 5; }
+    }
+
+    /* Tiêu đề section */
+    .container h2,
+    .container h3.text-primary {
+        color: var(--lux-white, #fff) !important;
+    }
+
+    /* ===== Product Card — khung rõ ràng, dễ phân biệt từng sản phẩm ===== */
+    .product-grid {
+        margin-bottom: 0.5rem;
+    }
+
+    .product-card {
+        background: var(--lux-surface, #111) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 0 !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
+        color: var(--lux-white, #fff) !important;
+        overflow: hidden;
+        transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .product-card:hover {
+        border-color: rgba(255, 255, 255, 0.32) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Vùng ảnh — tách biệt với phần chữ bằng đường kẻ mờ */
+    .product-card__image-wrap {
+        overflow: hidden;
+        background: #0a0a0a;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .product-card__img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 0 !important;
+        transition: transform 0.55s ease;
+    }
+
+    .product-card__img--placeholder {
+        height: 220px;
+        background: #0a0a0a !important;
+        color: var(--lux-muted, #b3b3b3) !important;
+    }
+
+    .product-card:hover .product-card__img {
+        transform: scale(1.04);
+    }
+
+    /* Phần thông tin — căn trái, có padding đồng nhất */
+    .product-card__body {
+        padding: 1rem 1.1rem 1.15rem !important;
+        text-align: left;
+    }
+
+    .product-card__category {
+        display: inline-block;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--lux-muted, #b3b3b3);
+        margin-bottom: 0.45rem;
+    }
+
+    .product-card__title {
+        color: var(--lux-white, #fff) !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        font-size: 0.82rem;
+        line-height: 1.4;
+        letter-spacing: 0.03em;
+        text-transform: none;
+        margin-bottom: 0.6rem;
+        /* Giới hạn 2 dòng — tránh tiêu đề dài làm lệch chiều cao thẻ */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 2.3em;
+    }
+
+    .product-card__price {
+        color: #4ade80 !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.85rem;
+    }
+
+    .product-card__currency {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--lux-muted, #b3b3b3);
+    }
+
+    /* Khu vực nút — tách bằng đường kẻ phía trên */
+    .product-card__actions {
+        padding-top: 0.85rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .product-card .btn-primary,
+    .product-card .btn-outline-primary,
+    .product-card .btn-secondary {
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        color: var(--lux-white, #fff) !important;
+        border-radius: 0 !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.68rem;
+        padding: 0.45rem 0.5rem;
+        box-shadow: none !important;
+        transition: all 0.3s ease;
+    }
+
+    .product-card .btn-primary:hover,
+    .product-card .btn-outline-primary:hover {
+        background: var(--lux-white, #fff) !important;
+        color: #000 !important;
+        border-color: var(--lux-white, #fff) !important;
+    }
+
+    .product-card .btn-secondary[disabled] {
+        color: var(--lux-faint, #808080) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        opacity: 0.7;
+    }
+
+    /* Badge tồn kho — nền mờ để đọc rõ trên ảnh */
+    .product-card__badge {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-radius: 0 !important;
+        padding: 0.3rem 0.55rem;
+        backdrop-filter: blur(6px);
+    }
+
+    .product-card__badge--danger {
+        background: rgba(248, 113, 113, 0.85) !important;
+        border: 1px solid rgba(248, 113, 113, 0.6) !important;
+        color: #fff !important;
+    }
+
+    .product-card__badge--warning {
+        background: rgba(251, 191, 36, 0.85) !important;
+        border: 1px solid rgba(251, 191, 36, 0.6) !important;
+        color: #000 !important;
+    }
+
+    /* Tiêu đề danh mục — tách rõ từng nhóm sản phẩm */
+    .home-page .container > .mb-5 {
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .home-page .container > .mb-5:last-of-type {
+        border-bottom: none;
+    }
+
+    .home-page .container h3.text-primary {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .home-page .container h3.text-primary i {
+        color: var(--lux-muted, #b3b3b3);
+    }
+
+    /* Search bar tối giản */
+    .hero-search .input-group {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .hero-search__icon,
+    .input-group-text {
+        background: transparent !important;
+        border: 1px solid var(--lux-line, rgba(255,255,255,0.12)) !important;
+        border-right: none !important;
+        border-radius: 0 !important;
+        color: var(--lux-muted, #b3b3b3) !important;
+    }
+
+    .search-input-home {
+        background: transparent !important;
+        border: 1px solid var(--lux-line, rgba(255,255,255,0.12)) !important;
+        border-left: none !important;
+        border-right: none !important;
+        color: var(--lux-white, #fff) !important;
+        border-radius: 0 !important;
+        padding: 0.75rem 1rem;
+    }
+
+    .search-input-home::placeholder {
+        color: var(--lux-faint, #808080) !important;
+    }
+
+    .search-input-home:focus {
+        background: transparent !important;
+        border-color: var(--lux-white, #fff) !important;
+        box-shadow: none !important;
+        outline: none;
+        color: var(--lux-white, #fff) !important;
+    }
+
+    .hero-search__btn,
+    .hero-search__clear {
+        background: transparent !important;
+        border: 1px solid var(--lux-white, #fff) !important;
+        color: var(--lux-white, #fff) !important;
+        border-radius: 0 !important;
+        font-family: 'Montserrat', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.4s ease;
+    }
+
+    .hero-search__btn:hover,
+    .hero-search__clear:hover {
+        background: var(--lux-white, #fff) !important;
+        color: #000 !important;
+        transform: none;
+        box-shadow: none !important;
+    }
+
+    /* Nút "Xem thêm" phụ */
+    .btn-outline-secondary {
+        background: transparent !important;
+        border: 1px solid var(--lux-line, rgba(255,255,255,0.25)) !important;
+        color: var(--lux-muted, #b3b3b3) !important;
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--lux-white, #fff) !important;
+        color: #000 !important;
+        border-color: var(--lux-white, #fff) !important;
+    }
+
+    /* Alert tối giản */
+    .alert-light, .alert-info {
+        background: var(--lux-surface, #111) !important;
+        border: 1px solid var(--lux-line, rgba(255,255,255,0.12)) !important;
+        color: var(--lux-muted, #b3b3b3) !important;
+        border-radius: 0 !important;
+    }
+
+    /* Toast Notification - tối giản đen/trắng */
+    .toast-notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 400px;
+    }
+
+    .toast-notification {
+        background: var(--lux-bg, #0a0a0a);
+        border: 1px solid var(--lux-white, #fff);
+        border-radius: 0;
+        box-shadow: none;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        animation: slideInRight 0.5s ease-out, fadeOut 0.8s ease-in 4s forwards;
+        transform-origin: top right;
+        min-width: 300px;
+    }
+
+    @@keyframes slideInRight {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @@keyframes fadeOut {
+        to { opacity: 0; transform: translateX(400px); }
+    }
+
+    .toast-notification .toast-content h4 {
+        color: var(--lux-white, #fff);
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+    }
+
+    .toast-notification .toast-content p {
+        color: var(--lux-muted, #b3b3b3);
+        margin-bottom: 0.25rem;
+        font-size: 0.92rem;
+    }
+
+    .toast-notification .toast-content hr {
+        border-color: var(--lux-line, rgba(255,255,255,0.12));
+        margin: 0.5rem 0;
+    }
+
+    .toast-notification .toast-content .toast-icon {
+        font-size: 1.6rem;
+        margin-right: 0.5rem;
+        color: var(--lux-white, #fff);
+    }
+</style>

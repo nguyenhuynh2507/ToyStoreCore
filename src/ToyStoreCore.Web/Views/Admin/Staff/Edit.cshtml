@@ -1,0 +1,30 @@
+@model EditStaffViewModel
+@{
+    ViewData["Title"] = "Sửa nhân viên";
+}
+
+<h1>Sửa thông tin nhân viên</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminStaff" asp-action="Edit" asp-route-id="@Model.Id" method="post" style="max-width:400px;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="field">
+        <label>Email (không đổi được)</label>
+        <input value="@Model.Email" disabled />
+    </div>
+    <div class="field">
+        <label>Họ tên</label>
+        <input asp-for="FullName" />
+    </div>
+    <div class="field">
+        <label>Số điện thoại</label>
+        <input asp-for="Phone" />
+    </div>
+    <div class="field">
+        <label>Đặt mật khẩu mới (để trống nếu không đổi)</label>
+        <input asp-for="NewPassword" type="password" />
+    </div>
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+</form>

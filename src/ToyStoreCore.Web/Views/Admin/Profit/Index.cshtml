@@ -1,0 +1,24 @@
+@model ProfitReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo lợi nhuận";
+}
+
+<h1>Báo cáo lợi nhuận</h1>
+
+<form method="get" class="filter-bar">
+    <input type="number" name="month" value="@Model.Month" min="1" max="12" style="width:70px;" />
+    <input type="number" name="year" value="@Model.Year" min="2000" max="2100" style="width:90px;" />
+    <button type="submit" class="btn btn-secondary">Xem</button>
+</form>
+
+<table class="data-table">
+    <tbody>
+        <tr><td>Doanh thu (đơn hoàn thành)</td><td style="font-weight:700;">@Model.TotalRevenue.ToString("N0") đ</td></tr>
+        <tr><td>Giá vốn hàng nhập (từ phiếu nhập kho)</td><td style="color:#c93b46;">-@Model.TotalCogs.ToString("N0") đ</td></tr>
+        <tr><td style="font-weight:700;">Lợi nhuận gộp</td><td style="font-weight:700; font-size:1.2rem;">@Model.GrossProfit.ToString("N0") đ</td></tr>
+    </tbody>
+</table>
+
+<p style="color:#666; margin-top:16px;">
+    Lưu ý: đây là ước tính lợi nhuận gộp theo tháng dựa trên tổng chi phí nhập kho trong tháng, chưa trừ chi phí vận hành khác (lương, mặt bằng...).
+</p>

@@ -1,0 +1,264 @@
+@model ProductDetailsViewModel
+@{
+    var product = Model.Product;
+    ViewData["Title"] = product.Name;
+
+    var galleryItems = new List<string>();
+    if (!string.IsNullOrEmpty(product.ImageUrl))
+    {
+        galleryItems.Add(product.ImageUrl);
+    }
+    foreach (var image in product.Images)
+    {
+        if (!string.IsNullOrEmpty(image.ImageUrl) && !galleryItems.Contains(image.ImageUrl))
+        {
+            galleryItems.Add(image.ImageUrl);
+        }
+    }
+    var initialImageUrl = galleryItems.FirstOrDefault();
+}
+
+<link rel="stylesheet" href="~/css/product-details.css?v=3" />
+
+<div class="container mt-4 pb-5">
+    <div class="row">
+        <!-- Hình ảnh sản phẩm -->
+        <div class="col-md-6">
+            @if (galleryItems.Count > 0)
+            {
+                <div class="product-gallery">
+                    @if (galleryItems.Count > 1)
+                    {
+                        <div class="product-gallery-thumbs">
+                            @for (var i = 0; i < galleryItems.Count; i++)
+                            {
+                                <button type="button"
+                                        class="product-gallery-thumb @(i == 0 ? "is-active" : "")"
+                                        data-image="@galleryItems[i]"
+                                        aria-label="Xem ảnh @(i + 1)">
+                                    <img src="@galleryItems[i]" alt="@product.Name" />
+                                </button>
+                            }
+                        </div>
+                    }
+
+                    <div class="product-gallery-main product-image-container d-flex justify-content-center align-items-center">
+                        <img id="mainProductImage"
+                             src="@initialImageUrl"
+                             class="img-fluid rounded product-image"
+                             alt="@product.Name">
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="product-image-container d-flex justify-content-center align-items-center">
+                    <div class="bg-dark d-flex align-items-center justify-content-center rounded product-image-placeholder">
+                        <i class="fas fa-image fa-5x text-muted"></i>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Thông tin sản phẩm -->
+        <div class="col-md-6">
+            <div class="product-info">
+                <h1 class="product-title mb-3">@product.Name</h1>
+
+                <div class="product-meta mb-3">
+                    <span class="badge badge-category">@product.Category?.Name</span>
+                    @if (product.IsActive && product.StockQuantity > 0)
+                    {
+                        <span class="badge badge-in-stock ms-2">Còn hàng</span>
+                    }
+                    else if (product.IsActive && product.StockQuantity == 0)
+                    {
+                        <span class="badge badge-out-stock ms-2">Hết hàng</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-unavailable ms-2">Không bán</span>
+                    }
+                </div>
+
+                <div class="product-price mb-4">
+                    <h2 class="price-text fw-bold">@product.Price.ToString("N0") VNĐ</h2>
+                </div>
+
+                @if (!string.IsNullOrEmpty(product.Description))
+                {
+                    <div class="product-description mb-4">
+                        <h5 class="desc-title">Mô tả sản phẩm</h5>
+                        <p class="desc-text">@product.Description</p>
+                    </div>
+                }
+
+                <div class="product-stock mb-4">
+                    @if (product.IsActive && product.StockQuantity > 0)
+                    {
+                        <h6 class="stock-title">Số lượng tồn kho: <span class="stock-available">@product.StockQuantity sản phẩm</span></h6>
+                    }
+                    else if (product.IsActive && product.StockQuantity == 0)
+                    {
+                        <h6 class="stock-title">Số lượng tồn kho: <span class="stock-out">Hết hàng</span></h6>
+                    }
+                    else
+                    {
+                        <h6 class="stock-title">Số lượng tồn kho: <span class="stock-unavailable">Không bán</span></h6>
+                    }
+                </div>
+
+                <!-- Các nút hành động -->
+                <div class="product-actions">
+                    @if (product.IsActive && product.StockQuantity > 0)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <form asp-controller="Cart" asp-action="Add" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@product.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                    <button type="submit" class="btn btn-cart btn-lg w-100">
+                                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <form asp-controller="Orders" asp-action="BuyNow" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@product.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="btn btn-buy-now btn-lg w-100">
+                                        <i class="fas fa-bolt me-2"></i>Mua ngay
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @if (User.Identity?.IsAuthenticated != true)
+                        {
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-user-clock me-1"></i>
+                                Mua không cần đăng ký — nhập thông tin giao hàng khi thanh toán.
+                                Đã có tài khoản? <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            </p>
+                        }
+                    }
+                    else if (product.IsActive && product.StockQuantity == 0)
+                    {
+                        <div class="alert alert-out-stock" role="alert">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <strong>Sản phẩm đã hết hàng!</strong> Vui lòng chọn sản phẩm khác hoặc quay lại sau.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-unavailable" role="alert">
+                            <i class="fas fa-ban me-2"></i>
+                            <strong>Sản phẩm không được bán!</strong> Sản phẩm này hiện không có sẵn.
+                        </div>
+                    }
+                </div>
+
+                <!-- Thông tin bổ sung -->
+                <div class="product-additional-info mt-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-truck icon-info"></i>
+                                <small class="info-text">Giao hàng miễn phí</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-shield-alt icon-info"></i>
+                                <small class="info-text">Bảo hành chính hãng</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-undo icon-info"></i>
+                                <small class="info-text">Đổi trả trong 7 ngày</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-headset icon-info"></i>
+                                <small class="info-text">Hỗ trợ 24/7</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.RecommendedProducts.Any())
+    {
+        <section class="product-recommendations mt-5 pt-5">
+            <h3 class="product-recommendations__title mb-4">
+                <i class="fas fa-sparkles me-2"></i>SẢN PHẨM CÓ THỂ BẠN QUAN TÂM
+            </h3>
+            <div class="row g-4">
+                @foreach (var item in Model.RecommendedProducts)
+                {
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="Products" asp-action="Details" asp-route-id="@item.Id"
+                           class="product-recommend-card text-decoration-none">
+                            <div class="product-recommend-card__image-wrap">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.Name" class="product-recommend-card__image" />
+                                }
+                                else
+                                {
+                                    <div class="product-recommend-card__placeholder">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="product-recommend-card__body">
+                                <h6 class="product-recommend-card__name">@item.Name</h6>
+                                <p class="product-recommend-card__price mb-0">@item.Price.ToString("N0") ₫</p>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- Nút quay lại -->
+    <div class="row mt-5 pt-4 border-top border-neon">
+        <div class="col-12">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-back">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+            </a>
+            <a asp-controller="Products" asp-action="Index" class="btn btn-outline-shop ms-2">
+                <i class="fas fa-store me-2"></i>Xem tất cả sản phẩm
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (galleryItems.Count > 1)
+{
+    <script>
+        (function () {
+            var mainImage = document.getElementById('mainProductImage');
+            var thumbs = document.querySelectorAll('.product-gallery-thumb');
+            if (!mainImage || !thumbs.length) return;
+
+            thumbs.forEach(function (thumb) {
+                thumb.addEventListener('click', function () {
+                    var nextSrc = this.getAttribute('data-image');
+                    if (!nextSrc) return;
+
+                    mainImage.src = nextSrc;
+                    thumbs.forEach(function (t) { t.classList.remove('is-active'); });
+                    this.classList.add('is-active');
+                });
+            });
+        })();
+    </script>
+}

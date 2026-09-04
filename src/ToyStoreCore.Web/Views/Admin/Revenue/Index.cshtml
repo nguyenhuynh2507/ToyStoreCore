@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+    string filterMode = ViewBag.FilterMode;
+    int? selectedYear = ViewBag.SelectedYear;
+    DateTime? startDate = ViewBag.StartDate;
+    DateTime? endDate = ViewBag.EndDate;
+    DateTime rangeStart = ViewBag.RangeStart;
+    DateTime rangeEnd = ViewBag.RangeEnd;
+    int orderCount = ViewBag.OrderCount;
+    decimal totalSubtotal = ViewBag.TotalSubtotal;
+    decimal totalMembershipDiscount = ViewBag.TotalMembershipDiscount;
+    decimal totalPromoDiscount = ViewBag.TotalPromoDiscount;
+    decimal totalNetRevenue = ViewBag.TotalNetRevenue;
+    int ordersWithPromo = ViewBag.OrdersWithPromo;
+    int ordersWithMembershipDiscount = ViewBag.OrdersWithMembershipDiscount;
+}
+
+<h1>Báo cáo doanh thu &amp; khuyến mãi</h1>
+<p style="color:#666;">Khoảng thời gian: @rangeStart.ToString("dd/MM/yyyy") - @rangeEnd.ToString("dd/MM/yyyy") (chỉ tính đơn "Hoàn thành")</p>
+
+<form method="get" class="filter-bar">
+    <div class="field" style="margin:0;">
+        <label>Theo năm</label>
+        <input type="number" name="year" value="@selectedYear" min="2000" max="2100" style="width:100px;" />
+    </div>
+    <div class="field" style="margin:0;">
+        <label>Hoặc từ ngày</label>
+        <input type="date" name="startDate" value="@startDate?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="field" style="margin:0;">
+        <label>Đến ngày</label>
+        <input type="date" name="endDate" value="@endDate?.ToString("yyyy-MM-dd")" />
+    </div>
+    <button type="submit" class="btn btn-secondary" style="align-self:flex-end;">Lọc</button>
+</form>
+
+<table class="data-table">
+    <tbody>
+        <tr><td>Số đơn hoàn thành</td><td style="font-weight:700;">@orderCount</td></tr>
+        <tr><td>Tổng tạm tính (trước giảm giá)</td><td style="font-weight:700;">@totalSubtotal.ToString("N0") đ</td></tr>
+        <tr><td>Tổng giảm giá hạng thành viên (@ordersWithMembershipDiscount đơn)</td><td style="color:#c93b46;">-@totalMembershipDiscount.ToString("N0") đ</td></tr>
+        <tr><td>Tổng giảm giá voucher (@ordersWithPromo đơn)</td><td style="color:#c93b46;">-@totalPromoDiscount.ToString("N0") đ</td></tr>
+        <tr><td style="font-weight:700;">Doanh thu thực thu</td><td style="font-weight:700; font-size:1.2rem;">@totalNetRevenue.ToString("N0") đ</td></tr>
+    </tbody>
+</table>

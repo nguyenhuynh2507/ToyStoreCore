@@ -1,0 +1,48 @@
+@model Order
+@{
+    ViewData["Title"] = $"Đơn hàng #{Model.Id}";
+}
+
+<h1>Đơn hàng #@Model.Id</h1>
+
+<p>
+    <strong>Khách hàng:</strong> @Model.CustomerName - @Model.PhoneNumber<br />
+    <strong>Địa chỉ:</strong> @Model.ShippingAddress<br />
+    @if (!string.IsNullOrWhiteSpace(Model.Note))
+    {
+        <span><strong>Ghi chú:</strong> @Model.Note<br /></span>
+    }
+    <strong>Ngày đặt:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+</p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.UnitPrice.ToString("N0") đ</td>
+                <td>@item.Quantity</td>
+                <td>@((item.UnitPrice * item.Quantity).ToString("N0")) đ</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p class="cart-total">Tổng cộng: @Model.TotalAmount.ToString("N0") đ</p>
+
+<form asp-controller="AdminOrders" asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" style="max-width:300px; margin-top:20px;">
+    @Html.AntiForgeryToken()
+    <div class="field">
+        <label>Trạng thái đơn hàng</label>
+        <select name="status">
+            @foreach (var s in Enum.GetValues<OrderStatus>())
+            {
+                <option value="@s" selected="@(s == Model.Status)">@s</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Cập nhật trạng thái</button>
+</form>

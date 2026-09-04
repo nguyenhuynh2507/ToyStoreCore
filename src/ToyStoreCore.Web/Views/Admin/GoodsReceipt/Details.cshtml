@@ -1,0 +1,33 @@
+@model GoodsReceipt
+@{
+    ViewData["Title"] = $"Phiếu nhập #{Model.Id}";
+}
+
+<h1>Phiếu nhập kho #@Model.Id</h1>
+
+<p>
+    <strong>Ngày nhập:</strong> @Model.ImportDate.ToString("dd/MM/yyyy")<br />
+    <strong>Người tạo:</strong> @(Model.CreatedBy?.FullName ?? "—")<br />
+    @if (!string.IsNullOrEmpty(Model.Note))
+    {
+        <span><strong>Ghi chú:</strong> @Model.Note<br /></span>
+    }
+</p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Sản phẩm</th><th>Số lượng</th><th>Giá nhập</th><th>Thành tiền</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model.Details)
+        {
+            <tr>
+                <td>@(d.Product?.Name ?? $"#{d.ProductId}")</td>
+                <td>@d.Quantity</td>
+                <td>@d.ImportPrice.ToString("N0") đ</td>
+                <td>@((d.Quantity * d.ImportPrice).ToString("N0")) đ</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p class="cart-total">Tổng chi phí: @Model.TotalCost.ToString("N0") đ</p>

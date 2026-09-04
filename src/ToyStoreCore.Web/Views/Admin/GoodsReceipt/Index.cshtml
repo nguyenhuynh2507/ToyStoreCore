@@ -1,0 +1,27 @@
+@model List<GoodsReceipt>
+@{
+    ViewData["Title"] = "Phiếu nhập kho";
+}
+
+<h1>Phiếu nhập kho</h1>
+
+<p><a class="btn btn-primary" asp-controller="AdminGoodsReceipt" asp-action="Create">+ Tạo phiếu nhập</a></p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Mã phiếu</th><th>Ngày nhập</th><th>Người tạo</th><th>Số dòng SP</th><th>Tổng chi phí</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>#@r.Id</td>
+                <td>@r.ImportDate.ToString("dd/MM/yyyy")</td>
+                <td>@(r.CreatedBy?.FullName ?? "—")</td>
+                <td>@r.Details.Count</td>
+                <td>@r.TotalCost.ToString("N0") đ</td>
+                <td><a class="btn btn-secondary" asp-controller="AdminGoodsReceipt" asp-action="Details" asp-route-id="@r.Id">Chi tiết</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

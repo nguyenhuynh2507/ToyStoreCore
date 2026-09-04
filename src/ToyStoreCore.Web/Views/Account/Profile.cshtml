@@ -1,0 +1,56 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<h1>Thông tin cá nhân</h1>
+
+<div style="display:flex; gap:40px; flex-wrap:wrap;">
+    <form asp-action="Profile" method="post" style="flex:1; min-width:280px;">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="field">
+            <label>Email</label>
+            <input value="@Model.Email" disabled />
+        </div>
+        <div class="field">
+            <label>Họ tên</label>
+            <input asp-for="FullName" />
+        </div>
+        <div class="field">
+            <label>Số điện thoại</label>
+            <input asp-for="Phone" />
+        </div>
+        <div class="field">
+            <label>Địa chỉ</label>
+            <input asp-for="Address" />
+        </div>
+        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+    </form>
+
+    <div style="flex:1; min-width:280px;">
+        <h3>Hạng thành viên</h3>
+        @if (!string.IsNullOrEmpty(Model.TierName))
+        {
+            <p>
+                Hạng hiện tại: <strong>@Model.TierName</strong>
+                (giảm <strong>@Model.TierDiscountPercent.ToString("0.##")%</strong> mỗi đơn)
+            </p>
+        }
+        else
+        {
+            <p>Bạn chưa đạt hạng thành viên nào.</p>
+        }
+        <p>Số đơn đã hoàn thành: <strong>@Model.TotalCompletedOrders</strong></p>
+
+        @if (!string.IsNullOrEmpty(Model.NextTierName))
+        {
+            var remaining = Model.NextTierRequiredOrders!.Value - Model.TotalCompletedOrders;
+            <p>Còn <strong>@remaining</strong> đơn nữa để đạt hạng <strong>@Model.NextTierName</strong>.</p>
+        }
+        else
+        {
+            <p>Bạn đã đạt hạng cao nhất!</p>
+        }
+    </div>
+</div>

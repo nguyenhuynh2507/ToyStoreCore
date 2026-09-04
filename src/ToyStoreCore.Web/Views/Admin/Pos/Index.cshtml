@@ -1,0 +1,220 @@
+@{
+    ViewData["Title"] = "Bán hàng tại quầy (POS)";
+}
+
+<h1>Bán hàng tại quầy (POS)</h1>
+
+<div style="display:flex; gap:24px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:300px;">
+        <h3>Tìm sản phẩm</h3>
+        <input type="text" id="posSearchInput" placeholder="Gõ tên sản phẩm..." autocomplete="off" />
+        <div id="posSearchResults" style="margin-top:10px;"></div>
+    </div>
+
+    <div style="flex:1.3; min-width:360px;">
+        <h3>Giỏ hàng POS</h3>
+        <table class="data-table" id="posCartTable">
+            <thead>
+                <tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th></th></tr>
+            </thead>
+            <tbody id="posCartBody"></tbody>
+        </table>
+
+        <div class="field" style="margin-top:16px;">
+            <label>Tra cứu khách hàng (SĐT - tùy chọn, để trống nếu khách lẻ)</label>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="posPhoneInput" placeholder="Số điện thoại khách" />
+                <button type="button" id="btnLookupCustomer" class="btn btn-secondary">Tra cứu</button>
+            </div>
+            <div id="posCustomerInfo" style="margin-top:6px; color:#1c7a3b;"></div>
+        </div>
+
+        <div class="field">
+            <label>Phương thức thanh toán</label>
+            <select id="posPaymentMethod">
+                <option value="Tiền mặt">Tiền mặt</option>
+                <option value="Chuyển khoản (QR)">Chuyển khoản (QR)</option>
+            </select>
+        </div>
+
+        <div style="margin-top:14px; text-align:right;">
+            <div>Tạm tính: <span id="posSubtotal">0</span> đ</div>
+            <div id="posDiscountRow" style="display:none;">Giảm hạng thành viên: -<span id="posDiscount">0</span> đ</div>
+            <div class="cart-total">Tổng thanh toán: <span id="posTotal">0</span> đ</div>
+        </div>
+
+        <div style="margin-top:14px; text-align:right;">
+            <button type="button" id="btnCheckout" class="btn btn-primary">Thanh toán</button>
+        </div>
+
+        <div id="posResultMessage" style="margin-top:14px;"></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let cart = []; // { productId, name, unitPrice, quantity, stock }
+    let selectedCustomer = null; // { customerId, fullName, discountPercent }
+
+    const searchInput = document.getElementById('posSearchInput');
+    const resultsBox = document.getElementById('posSearchResults');
+    const cartBody = document.getElementById('posCartBody');
+    const subtotalEl = document.getElementById('posSubtotal');
+    const discountRow = document.getElementById('posDiscountRow');
+    const discountEl = document.getElementById('posDiscount');
+    const totalEl = document.getElementById('posTotal');
+    const resultMessage = document.getElementById('posResultMessage');
+
+    function formatVnd(n) {
+        return new Intl.NumberFormat('vi-VN').format(Math.round(n));
+    }
+
+    function renderCart() {
+        cartBody.innerHTML = cart.map((line, idx) => `
+            <tr>
+                <td>${line.name}</td>
+                <td><input type="number" min="1" max="${line.stock}" value="${line.quantity}" data-idx="${idx}" class="pos-qty" style="width:60px;" /></td>
+                <td>${formatVnd(line.unitPrice)} đ</td>
+                <td>${formatVnd(line.unitPrice * line.quantity)} đ</td>
+                <td><button type="button" class="btn btn-danger pos-remove" data-idx="${idx}" style="padding:4px 8px;">Xóa</button></td>
+            </tr>
+        `).join('');
+        recalcTotals();
+    }
+
+    function recalcTotals() {
+        const subtotal = cart.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0);
+        let discount = 0;
+        if (selectedCustomer && selectedCustomer.discountPercent > 0) {
+            discount = subtotal * (selectedCustomer.discountPercent / 100);
+            discountRow.style.display = 'block';
+        } else {
+            discountRow.style.display = 'none';
+        }
+        const total = Math.max(0, subtotal - discount);
+        subtotalEl.textContent = formatVnd(subtotal);
+        discountEl.textContent = formatVnd(discount);
+        totalEl.textContent = formatVnd(total);
+    }
+
+    cartBody.addEventListener('input', (e) => {
+        if (e.target.classList.contains('pos-qty')) {
+            const idx = parseInt(e.target.dataset.idx, 10);
+            let qty = parseInt(e.target.value, 10) || 1;
+            qty = Math.max(1, Math.min(qty, cart[idx].stock));
+            cart[idx].quantity = qty;
+            renderCart();
+        }
+    });
+
+    cartBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('pos-remove')) {
+            const idx = parseInt(e.target.dataset.idx, 10);
+            cart.splice(idx, 1);
+            renderCart();
+        }
+    });
+
+    let searchDebounce;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounce);
+        const term = searchInput.value.trim();
+        if (term.length < 2) {
+            resultsBox.innerHTML = '';
+            return;
+        }
+        searchDebounce = setTimeout(async () => {
+            const res = await fetch('/Admin/Pos/SearchProducts?query=' + encodeURIComponent(term));
+            const products = await res.json();
+            resultsBox.innerHTML = products.map(p => `
+                <div class="product-card" style="flex-direction:row; align-items:center; gap:10px; padding:8px; margin-bottom:6px; cursor:pointer;" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-stock="${p.stockQuantity}">
+                    <img src="${p.imageUrl}" style="width:48px; height:48px; object-fit:cover; border-radius:6px;" />
+                    <div style="flex:1;">
+                        <div style="font-weight:600;">${p.name}</div>
+                        <div>${formatVnd(p.price)} đ - còn ${p.stockQuantity}</div>
+                    </div>
+                </div>
+            `).join('') || '<p>Không tìm thấy sản phẩm.</p>';
+        }, 250);
+    });
+
+    resultsBox.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-id]');
+        if (!card) return;
+
+        const productId = parseInt(card.dataset.id, 10);
+        const existing = cart.find(l => l.productId === productId);
+        const stock = parseInt(card.dataset.stock, 10);
+
+        if (existing) {
+            if (existing.quantity < stock) existing.quantity++;
+        } else {
+            cart.push({
+                productId,
+                name: card.dataset.name,
+                unitPrice: parseFloat(card.dataset.price),
+                quantity: 1,
+                stock,
+            });
+        }
+        renderCart();
+    });
+
+    document.getElementById('btnLookupCustomer').addEventListener('click', async () => {
+        const phone = document.getElementById('posPhoneInput').value.trim();
+        const infoBox = document.getElementById('posCustomerInfo');
+        if (!phone) {
+            selectedCustomer = null;
+            infoBox.textContent = '';
+            recalcTotals();
+            return;
+        }
+
+        const res = await fetch('/Admin/Pos/LookupCustomer?phone=' + encodeURIComponent(phone));
+        const data = await res.json();
+        if (!data.found) {
+            selectedCustomer = null;
+            infoBox.style.color = '#c93b46';
+            infoBox.textContent = data.message;
+        } else {
+            selectedCustomer = data;
+            infoBox.style.color = '#1c7a3b';
+            infoBox.textContent = `${data.fullName} - Hạng ${data.tierName} (giảm ${data.discountPercent}%)`;
+        }
+        recalcTotals();
+    });
+
+    document.getElementById('btnCheckout').addEventListener('click', async () => {
+        if (cart.length === 0) {
+            alert('Giỏ hàng POS đang trống.');
+            return;
+        }
+
+        const payload = {
+            items: cart.map(l => ({ productId: l.productId, quantity: l.quantity, unitPrice: l.unitPrice })),
+            paymentMethod: document.getElementById('posPaymentMethod').value,
+            customerId: selectedCustomer ? selectedCustomer.customerId : null,
+        };
+
+        const res = await fetch('/Admin/Pos/CreatePosOrder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            resultMessage.innerHTML = `<div class="alert alert-success">Đơn #${data.orderId} - ${data.message}</div>`;
+            cart = [];
+            selectedCustomer = null;
+            document.getElementById('posPhoneInput').value = '';
+            document.getElementById('posCustomerInfo').textContent = '';
+            renderCart();
+        } else {
+            resultMessage.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+        }
+    });
+
+    renderCart();
+})();
+</script>

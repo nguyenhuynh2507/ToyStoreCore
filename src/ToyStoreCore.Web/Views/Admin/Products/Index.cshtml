@@ -1,0 +1,37 @@
+@model List<Product>
+@{
+    ViewData["Title"] = "Quản trị sản phẩm";
+}
+
+<h1>Quản lý sản phẩm</h1>
+
+<p><a class="btn btn-primary" asp-controller="AdminProducts" asp-action="Create">+ Thêm sản phẩm</a></p>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Tên</th><th>Danh mục</th><th>Giá</th><th>Tồn kho</th><th>Trạng thái</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Name</td>
+                <td>@p.Category?.Name</td>
+                <td>@p.Price.ToString("N0") đ</td>
+                <td>@p.StockQuantity</td>
+                <td>@(p.IsActive ? "Đang bán" : "Đã ẩn")</td>
+                <td style="display:flex; gap:8px;">
+                    <a class="btn btn-secondary" asp-controller="AdminProducts" asp-action="Edit" asp-route-id="@p.Id">Sửa</a>
+                    @if (p.IsActive)
+                    {
+                        <form asp-controller="AdminProducts" asp-action="Delete" asp-route-id="@p.Id" method="post"
+                              onsubmit="return confirm('Ẩn sản phẩm này?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger">Ẩn</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

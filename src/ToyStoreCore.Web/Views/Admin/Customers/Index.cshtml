@@ -1,0 +1,32 @@
+@model List<ApplicationUser>
+@{
+    ViewData["Title"] = "Quản lý khách hàng";
+    var currentFilter = ViewData["CurrentFilter"] as string;
+}
+
+<h1>Quản lý khách hàng</h1>
+
+<form method="get" class="filter-bar">
+    <input type="text" name="searchString" value="@currentFilter" placeholder="Tìm theo tên hoặc email..." />
+    <button type="submit" class="btn btn-secondary">Tìm</button>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Họ tên</th><th>Email</th><th>SĐT</th><th>Hạng</th><th>Số đơn hoàn thành</th><th>Trạng thái</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.FullName</td>
+                <td>@c.Email</td>
+                <td>@c.Phone</td>
+                <td>@(c.Tier?.TierName ?? "—")</td>
+                <td>@c.TotalCompletedOrders</td>
+                <td>@(c.IsLocked ? "Đã khóa" : "Bình thường")</td>
+                <td><a class="btn btn-secondary" asp-controller="AdminCustomers" asp-action="Details" asp-route-id="@c.Id">Chi tiết</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

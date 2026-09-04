@@ -1,0 +1,39 @@
+@model CreateWorkShiftViewModel
+@{
+    ViewData["Title"] = "Phân ca làm việc";
+    var staffList = (SelectList)ViewBag.StaffList;
+    string[] shiftNames = ViewBag.ShiftNames;
+}
+
+<h1>Phân ca làm việc</h1>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form asp-controller="AdminWorkShift" asp-action="Create" method="post" style="max-width:400px;">
+    @Html.AntiForgeryToken()
+    <div class="field">
+        <label>Nhân viên</label>
+        <select asp-for="StaffUserId" asp-items="staffList">
+            <option value="">-- Chọn nhân viên --</option>
+        </select>
+    </div>
+    <div class="field">
+        <label>Ngày làm việc</label>
+        <input asp-for="WorkDate" type="date" />
+    </div>
+    <div class="field">
+        <label>Ca làm việc</label>
+        <select asp-for="ShiftName">
+            <option value="">-- Chọn ca --</option>
+            @foreach (var s in shiftNames)
+            {
+                <option value="@s">@s</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label>Ghi chú (tùy chọn)</label>
+        <input asp-for="Note" />
+    </div>
+    <button type="submit" class="btn btn-primary">Phân ca</button>
+</form>
