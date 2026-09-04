@@ -1,68 +1,68 @@
 # ToyStoreCore
 
-Nền tảng thương mại điện tử bán đồ chơi full-stack, xây dựng bằng **ASP.NET Core 8 MVC** + **EF Core / PostgreSQL**. Dự án bao gồm cửa hàng trực tuyến cho khách hàng, hệ thống quản trị đầy đủ (sản phẩm, đơn hàng, khuyến mãi, kho), module bán hàng tại quầy (POS) và quản lý nhân sự (HR/chấm công/lương) — được rebuild lại từ một bản cũ dùng Oracle.
+A full-stack toy e-commerce platform built with **ASP.NET Core 8 MVC** + **EF Core / PostgreSQL**. The project covers a customer-facing online store, a complete admin back office (products, orders, promotions, inventory), an in-store Point-of-Sale (POS) module, and HR management (staff, shifts, payroll) — rebuilt from a legacy version that ran on Oracle.
 
 ## Tech Stack
 
-| Layer | Công nghệ |
+| Layer | Technology |
 |---|---|
 | Backend | ASP.NET Core 8 MVC, C# |
 | ORM / Database | Entity Framework Core, PostgreSQL (Npgsql) |
-| Auth | ASP.NET Core Identity — 3 role: `Admin`, `Staff`, `Customer` |
+| Auth | ASP.NET Core Identity — 3 roles: `Admin`, `Staff`, `Customer` |
 | Frontend | Razor Views, vanilla JS, Chart.js (CDN) |
-| Session | Cookie-based session cho giỏ hàng khách vãng lai |
+| Session | Cookie-based session for the guest cart |
 
-## Tính năng
+## Features
 
-### Khách hàng
-- Duyệt & tìm kiếm sản phẩm theo danh mục, khoảng giá, gợi ý tìm kiếm (autocomplete)
-- Giỏ hàng: hoạt động cho cả khách vãng lai (session) và khách đăng nhập (lưu DB, tự gộp khi đăng nhập)
-- Chọn từng sản phẩm để thanh toán, hoặc "Mua ngay" bỏ qua giỏ hàng
-- Áp dụng **giảm giá theo hạng thành viên** (4 hạng: Đồng/Bạc/Vàng/Kim Cương, tự thăng hạng theo số đơn hoàn tất) và **mã khuyến mãi/voucher**
-- Trang tài khoản, lịch sử & huỷ đơn hàng đang chờ xử lý
-- Gợi ý sản phẩm liên quan ("Có thể bạn cũng thích") bằng thuật toán dạng Apriori dựa trên hành vi khách hàng
-- Nhiều ảnh cho một sản phẩm (gallery)
+### Customer
+- Browse & search products by category and price range, with search autocomplete
+- Shopping cart works for both guests (session-based) and logged-in users (persisted to the DB, auto-merged on login)
+- Select specific items to check out, or "Buy Now" to skip the cart entirely
+- **Membership-tier discounts** (4 tiers: Bronze/Silver/Gold/Diamond, auto-upgraded based on completed orders) and **promotion/voucher codes**
+- Account page, order history, and self-service cancellation of pending orders
+- Related-product recommendations ("You may also like") using an Apriori-based algorithm driven by customer activity
+- Multiple images per product (gallery)
 
-### Quản trị (`/Admin/*`)
-- CRUD sản phẩm, danh mục, banner trang chủ, mã khuyến mãi
-- Quản lý khách hàng (tìm kiếm, xem lịch sử đơn, khoá/mở khoá tài khoản)
-- Quản lý đơn hàng, cập nhật trạng thái (tự động cộng tiến độ hạng thành viên khi hoàn tất)
-- Nhập kho (phiếu nhập nhiều dòng, tự cộng tồn kho, tính tổng chi phí)
-- Nhật ký hoạt động khách hàng (đầu vào cho hệ gợi ý sản phẩm)
-- Báo cáo doanh thu & lợi nhuận gộp theo tháng/khoảng ngày
-- Dashboard thống kê (Chart.js): doanh thu theo tháng/quý/năm, top sản phẩm/khách hàng
+### Admin (`/Admin/*`)
+- CRUD for products, categories, homepage banners, and promotion codes
+- Customer management (search, order history, lock/unlock accounts)
+- Order management with status updates (auto-updates membership progress on completion)
+- Goods receipt / inventory intake (multi-line forms, auto stock updates, cost totals)
+- Customer activity log (feeds the recommendation engine)
+- Monthly/date-range revenue and gross-profit reports
+- Statistics dashboard (Chart.js): revenue by month/quarter/year, top products and customers
 
 ### POS & HR
-- Màn hình bán hàng tại quầy (`/Admin/Pos`): tìm sản phẩm nhanh, tra cứu khách quen theo SĐT, áp giảm giá hạng thành viên tự động, tạo đơn hoàn tất ngay
-- Quản lý nhân viên, phân ca làm việc, chấm công (`/Admin/Staff`, `/Admin/WorkShift`)
-- Chốt lương theo tháng dựa trên số ca đã hoàn thành (`/Admin/Payroll`)
+- In-store checkout screen (`/Admin/Pos`): fast product search, lookup returning customers by phone to auto-apply membership discounts, and instantly complete orders
+- Staff management, shift scheduling, and attendance tracking (`/Admin/Staff`, `/Admin/WorkShift`)
+- Monthly payroll calculation based on completed shifts (`/Admin/Payroll`)
 
-## Yêu cầu môi trường
+## Requirements
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- PostgreSQL (local hoặc Docker)
+- PostgreSQL (local or Docker)
 
-## Cài đặt & chạy
+## Getting Started
 
-1. Tạo database Postgres, ví dụ bằng Docker:
+1. Spin up a PostgreSQL database, e.g. with Docker:
    ```bash
    docker run --name toystorecore-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=toystorecore -p 5432:5432 -d postgres:16
    ```
-2. Kiểm tra/sửa connection string trong `src/ToyStoreCore.Web/appsettings.json` (`ConnectionStrings:DefaultConnection`).
-3. Restore & chạy:
+2. Check/update the connection string in `src/ToyStoreCore.Web/appsettings.json` (`ConnectionStrings:DefaultConnection`).
+3. Restore and run:
    ```bash
    cd src/ToyStoreCore.Web
    dotnet restore
    dotnet run
    ```
-4. Ứng dụng tự tạo schema (`EnsureCreated`) và seed dữ liệu mẫu (sản phẩm, hạng thành viên, mã khuyến mãi, tài khoản admin) khi chạy lần đầu.
-5. Mở URL được in ra ở console (thường `https://localhost:5001`).
+4. The app creates the schema (`EnsureCreated`) and seeds sample data (products, membership tiers, promo codes, admin account) on first run.
+5. Open the URL printed in the console (usually `https://localhost:5001`).
 
-### Tài khoản admin mặc định (seed sẵn — đổi ngay nếu deploy thật)
+### Default admin account (seeded — change before deploying anywhere real)
 - Email: `admin@toystorecore.local`
-- Mật khẩu: `Admin@123`
+- Password: `Admin@123`
 
-## Cấu trúc thư mục
+## Project Structure
 
 ```
 ToyStoreCore.sln
@@ -72,12 +72,12 @@ src/ToyStoreCore.Web/
   Data/                  AppDbContext, DbInitializer, IdentitySeeder
   Services/              CartService, PromotionService, MembershipService,
                          ActivityTrackingService, RecommendationService
-  Views/                 Razor views theo từng controller
-  wwwroot/               css/js tĩnh, ảnh upload sản phẩm
+  Views/                 Razor views per controller
+  wwwroot/               Static css/js, uploaded product images
 ```
 
-## Ghi chú kỹ thuật
+## Technical Notes
 
-- `EnsureCreated()` được dùng để tạo schema nhanh cho môi trường dev; khi thay đổi model nên chuyển sang **EF Core Migrations** để tránh mất dữ liệu.
-- Ảnh sản phẩm được upload trực tiếp và lưu tại `wwwroot/uploads/products/`.
-- Chưa tích hợp cổng thanh toán/vận chuyển thật (VNPay, GHN) hay SignalR — nằm ngoài phạm vi dự án hiện tại.
+- `EnsureCreated()` is used for fast schema creation in dev; switch to **EF Core Migrations** when changing models to avoid data loss.
+- Product images are uploaded directly and stored under `wwwroot/uploads/products/`.
+- No real payment/shipping gateway integration (VNPay, GHN) or SignalR — out of scope for this project.
